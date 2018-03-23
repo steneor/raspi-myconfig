@@ -1,0 +1,408 @@
+#!/bin/sh
+# Part of raspi-myconfig http://github.com/steneor/raspi-myconfig
+#
+
+INTERACTIVE=True
+ASK_TO_REBOOT=0
+BLACKLIST=/etc/modprobe.d/raspi-blacklist.conf
+CONFIG=/boot/config.txt
+# Variables utilisées par ssmtp  (free.fr)
+EMAIL_ROOT=machin@free.fr
+EMAIL_SMTP=smtp.free.fr
+VERSION="1.1"
+
+calc_wt_size() {
+  # NOTE: it's tempting to redirect stderr to /dev/null, so supress error 
+  # output from tput. However in this case, tput detects neither stdout or 
+  # stderr is a tty and so only gives default 80, 24 values
+  WT_HEIGHT=17
+  WT_WIDTH=$(tput cols)
+
+  if [ -z "$WT_WIDTH" ] || [ "$WT_WIDTH" -lt 60 ]; then
+    WT_WIDTH=80
+  fi
+  if [ "$WT_WIDTH" -gt 178 ]; then
+    WT_WIDTH=120
+  fi
+  WT_MENU_HEIGHT=$(($WT_HEIGHT-7))
+}
+
+do_apropos() {
+  whiptail --msgbox "\
+https://github.com/steneor/raspi-myconfig
+Cet utilitaire va me permettre de personnaliser la configuration
+de mon RPI.\
+" 20 70 1
+}
+
+do_finish() {
+  if [ $ASK_TO_REBOOT -eq 1 ]; then
+    whiptail --yesno "Would you like to reboot now?" 20 60 2
+    if [ $? -eq 0 ]; then # yes
+      sync
+      reboot
+    fi
+  fi
+  exit 0
+}
+
+do_adduser() {
+	ADDUSER_NAME=$(whiptail --inputbox "Username / nom utilisé pour la crétion de l'ulisiateur" 20 70 3>&1 1>&2 2>&3)
+  if [ $? -ne 0 ]; then
+    return 1;
+  fi
+  adduser --gecos GECOS $ADDUSER_NAME &&
+  adduser $ADDUSER_NAME sudo &&
+  printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
+  sleep 5 &&
+  exec raspi-myconfig
+}
+do_deluser_pi() {
+  deluser --remove-home pi &&
+  printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
+  sleep 5 &&
+  exec raspi-myconfig
+}
+do_permit_root_login() {
+  whiptail --msgbox "\
+Editer le fichier /etc/ssh/sshd_congig puis vérifier que:
+	PermitRootLogin yes. (authentification par mot de passe)
+	ou bien
+	PermitRootLogin without-password. (authentification uniquement par clé)
+
+Le fichier /etc/skel/.bashrc va etre copier /root/.bashrc
+	cp /etc/skel/.bashrc /root
+
+Le prompt de root en rouge  (modif de /root/.bashrc)
+	PS1='\${debian_chroot:+(\$debian_chroot)}\[\033[01;32m\] ...
+	devient
+	PS1='\${debian_chroot:+(\$debian_chroot)}\[\033[01;31m\] ...
+
+	(le 32m devient 31m  (32 ->vert; 31->rouge; 33 ->jaune) 
+
+Quelques ls aliases:
+	alias ll='ls -l'
+	alias la='ls -la'
+	alias lt='ls -lt'
+	\
+" 25 70 1
+
+  cp /etc/skel/.bashrc /root &&
+  sed -i "s/01;32m/01;31m/g" /root/.bashrc &&
+    cat <<\EOF >> /root/.bashrc
+#rajouter par raspi-myconfig
+#some more ls aliases
+alias ll='ls -l'
+alias la='ls -la'
+alias lt='lt -lt'
+EOF
+
+  printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
+  sleep 5 &&
+  exec raspi-myconfig
+}
+do_rien() {
+  printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
+  sleep 5 &&
+  return 0
+}
+
+do_update_raspy_myconfig() {
+  wget https://raw.githubusercontent.com/steneor/raspi-myconfig/master/raspi-myconfig -O /usr/local/sbin/raspi-myconfig &&
+  chmod 744 /usr/local/sbin/raspi-myconfig &&
+  printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
+  sleep 5 &&
+  exec raspi-myconfig
+}
+
+do_install_git() {
+  apt-get install git &&
+  printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
+  sleep 5 &&
+  return 0
+}
+
+do_update_ugrade() {
+  apt-get update &&
+  apt-get upgrade &&
+  printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
+  sleep 5 &&
+  exec raspi-myconfig
+}
+
+do_install_samba() {
+  apt-get install samba samba-common-bin &&
+  cp /etc/samba/smb.conf /etc/samba/smb.conf_backup &&
+  cat <<\EOF >> /etc/samba/smb.conf
+#rajouter par raspi-myconfig
+[root]
+        writeable = yes
+        path = /
+        comment = root RPi 192.168.x.x
+        public = yes
+        security = share
+        create mode = 777
+        allow hosts = 192.168.0.
+        directory mode = 777
+EOF
+  systemctl restart smbd &&
+  printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
+  sleep 5 &&
+  exec raspi-myconfig
+}
+
+do_install_LAMP() {
+  apt install mariadb-client mariadb-server &&
+  apt install php7.0 php7.0-mysql &&
+  apt install apache2 libapache2-mod-php7.0
+  printf "Sleeping 5 seconds before return 0\n" &&
+  sleep 5 &&
+  return 0
+}
+
+do_install_wiringpi() {
+  apt install wiringpi &&
+  printf "Sleeping 5 seconds before return 0\n" &&
+  sleep 5 &&
+  return 0
+}
+
+do_install_mail_ssmtp(){
+  printf "Paramètres pour ssmtp\n" &&
+  EMAIL_ROOT=$(whiptail --inputbox "Adresse mail de root ou doit etre envoyé son courrier" 20 70 $EMAIL_ROOT 3>&1 1>&2 2>&3)
+  if [ $? -ne 0 ]; then
+    return 1;
+  fi
+  printf "Paramètres pour ssmtp\n" &&
+  EMAIL_ROOT=$(whiptail --inputbox "Adresse du serveur smtp utilisé" 20 70 $EMAIL_SMTP 3>&1 1>&2 2>&3)
+  if [ $? -ne 0 ]; then
+    return 1;
+  fi
+  
+  apt-get install -y ssmtp mailutils mpack &&
+  cat <<EOF >> /etc/ssmtp/ssmtp.conf
+
+#rajouter par raspi_myconfig
+root=$EMAIL_ROOT
+mailhub=$EMAIL_SMTP
+FromLineOverride=NO
+EOF
+  cat <<EOF >> /etc/ssmtp/revaliases
+
+#rajouter par raspi_myconfig
+root:$EMAIL_ROOT:$EMAIL_SMTP:25
+EOF
+  cat <<EOF >> /etc/aliases
+
+#rajouter par raspi_myconfig
+root:$EMAIL_ROOT
+EOF
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
+do_install_logwatch(){
+  apt-get install logwtach &&
+  cat <<\EOF >> /usr/share/logwatch/default.conf/logwatch.conf
+
+#rajouter par raspi_myconfig
+Output = mail
+EOF
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
+do_install_webmin(){
+  cat <<\EOF >> /etc/apt/sources.list
+#rajouter par raspi_myconfig
+deb https://download.webmin.com/download/repository sarge contrib
+EOF
+  cd /root
+  wget http://www.webmin.com/jcameron-key.asc
+  apt-key add jcameron-key.asc
+  
+  apt-get install apt-transport-https
+  apt-get update
+  apt-get install webmin
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
+do_install_phpmyadmin() {
+  apt-get install phpmyadmin &&
+  printf "Creation fichier /etc/init.d/phpmyadmin 'start|stop).\n" &&
+
+  cat <<\EOF > /etc/init.d/phpmyadmin
+#!/bin/bash
+if [ "$1" = "start" ];then
+  chmod 755 /usr/share/phpmyadmin
+  echo "starting phpmyadmin -> autorise acces au repertoire: chmod 755 /usr/share/phpmyadmin"
+else if [ "$1" = "stop" ];then
+  chmod 000 /usr/share/phpmyadmin
+  echo "stoping phpmyadmin -> interdire acces au repertoire: chmod 000 /usr/share/phpmyadmin"
+  
+  else
+        echo "usage phpmyadmin start | stop"
+  fi
+fi
+
+exit 0
+EOF
+  chmod +744 /etc/init.d/phpmyadmin &&
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
+do_mount_freebox() {
+  printf "mount de la freebox sur /media/freebox/\n" &&
+  mkdir /media/freebox &&
+
+  cat <<\EOF >> /etc/fstab
+#rajouter par raspi-myconfig
+//mafreebox.freebox.fr/Disque\040dur /media/freebox cifs _netdev,rw,users,iocharset=utf8,uid=1000,credentials=/root/.smbcredentials,sec=ntlm,file_mode=0777,dir_mode=0777 0 0
+EOF
+  cat <<\EOF >> /root/.smbcredentials
+username=
+password=
+EOF
+mount /media/freebox &&
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
+do_ip_fixe_eth0() {
+  printf "ip fixe pour eth0\n" &&
+  cat <<\EOF >> /etc/dhcpcd.conf
+#rajouter par raspi-myconfig
+# static IP configuration pour eth0:
+interface eth0
+static ip_address=192.168.0.40/24
+static routers=192.168.0.1
+static domain_name_servers=192.168.0.1 8.8.8.8
+EOF
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
+do_ip_fixe_wlan0() {
+  printf "ip fixe pour wlan0\n" &&
+	SSID=$(whiptail --inputbox "SSID / SSID du reseau wifi" 20 70 3>&1 1>&2 2>&3)
+  if [ $? -ne 0 ]; then
+    return 1;
+  fi
+	KEY=$(whiptail --inputbox "KEY wifi / cle wifi d'acces au reseau" 20 70 3>&1 1>&2 2>&3)
+  if [ $? -ne 0 ]; then
+    return 1;
+  fi
+
+  cat <<EOF >> /etc/wpa_supplicant/wpa_supplicant.conf
+#rajouter par raspi-myconfig
+network={
+ssid="$SSID"
+psk="$KEY"
+key_mgmt=WPA-PSK
+}
+EOF
+
+  cat <<\EOF >> /etc/dhcpcd.conf
+#rajouter par raspi-myconfig
+# static IP configuration pour wlan0:
+interface wlan0
+static ip_address=192.168.0.30/24
+static routers=192.168.0.1
+static domain_name_servers=192.168.0.1 8.8.8.8
+EOF
+
+  return 0
+}
+
+do_menu_security() {
+  FUN=$(whiptail --title "Raspberry Pi Software Configuration Tool (raspi-myconfig)" --menu "Menu Sécurité" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
+    "A1 Add utilisateur" "Ajout d'un utilisateur, (adduser --gecos GECOS ernesto)" \
+    "A2 Del utilisateur pi" "Supression de l'utilisateur pi (deluser --remove-home pi)" \
+    "A3 Permit root login" "edit /etc/ssh/sshd_congig ->PermitRootLogin=yes" \
+    "A4 rien" "do_rien" \
+    "A0 Update this tool" "the latest version on https://github.com/steneor/raspi-myconfig" \
+    3>&1 1>&2 2>&3)
+  RET=$?
+  if [ $RET -eq 1 ]; then
+    return 0
+  elif [ $RET -eq 0 ]; then
+    case "$FUN" in
+      A1\ *) do_adduser ;;
+      A2\ *) do_deluser_pi ;;
+      A3\ *) do_permit_root_login ;;
+      A4\ *) do_rien ;;
+      A0\ *) do_update_raspy_myconfig ;;
+      *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
+    esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
+  fi
+}
+
+do_menu_add_soft() {
+  FUN=$(whiptail --title "Raspberry Pi Software Configuration Tool (raspi-myconfig)" --menu "Menu Sécurité" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
+    "B1 Update Ugrade" "apt-get upade apt-get upgrade" \
+    "B2 install git" "Installation de git" \
+    "B3 Install samba" "apt-get install samba samba-common-bin" \
+    "B4 Install LAMP" "Install mariadb-server apache php" \
+    "B5 Install wiringpi" "apt install wiringpi" \
+    "B6 Install mail ssmtp" "apt-get install ssmtp mailutils mpack" \
+    "B7 Install logwatch" "apt-get install logwatch" \
+    "B8 Install webmin" "Webmin ->http://www.webmin.com/deb.html" \
+    "B0 Install de tout" "tout installer ...Pas encore disponible" \
+    3>&1 1>&2 2>&3)
+  RET=$?
+  if [ $RET -eq 1 ]; then
+    return 0
+  elif [ $RET -eq 0 ]; then
+    case "$FUN" in
+      B1\ *) do_update_ugrade ;;
+      B2\ *) do_install_git ;;
+      B3\ *) do_install_samba ;;
+      B4\ *) do_install_LAMP ;;
+      B5\ *) do_install_wiringpi ;;
+      B6\ *) do_install_mail_ssmtp ;;
+      B7\ *) do_install_logwatch ;;
+      B8\ *) do_install_webmin ;;
+      B0\ *) do_install_all ;;
+      *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
+    esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
+  fi
+}
+
+#
+# Interactive use loop
+#
+calc_wt_size
+while true; do
+  FUN=$(whiptail --title "Raspberry Pi Software Configuration Tool (raspi-myconfig)" --menu "Setup Options" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
+    "1 Menu Sécurité" "Configuration de la Sécurité" \
+    "2 installation softs" "Installation de divers logiciels" \
+    "3 mount freebox" "mount freebox sur /media/freebox" \
+    "4 IP fixe eth0" "edit /etc/dhcpcd.conf -> interface eth0 ..." \
+    "5 IP fixe wlan0" "edit /etc/dhcpcd.conf -> interface wlan0 ..." \
+    "9 A propos raspi-myconfig" "A propos de cet utilitaire de configuration" \
+    3>&1 1>&2 2>&3)
+  RET=$?
+  if [ $RET -eq 1 ]; then
+    do_finish
+  elif [ $RET -eq 0 ]; then
+    case "$FUN" in
+      1\ *) do_menu_security ;;
+      2\ *) do_menu_add_soft ;;
+      3\ *) do_mount_freebox ;;
+      4\ *) do_ip_fixe_eth0 ;;
+      5\ *) do_ip_fixe_wlan0 ;;
+      9\ *) do_apropos ;;
+      *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
+    esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
+  else
+    exit 1
+  fi
+done
