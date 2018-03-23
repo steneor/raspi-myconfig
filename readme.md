@@ -1,4 +1,4 @@
-# Utilitaire de personnalisation de RPI!
+# Utilitaire de personnalisation de mon RPI strech
 
 Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry PI raspbian strectch**
 
