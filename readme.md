@@ -3,9 +3,13 @@
 Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry PI raspbian strectch**
 
 ## Pour l'installer:
-### méthode 1:
+### méthode 1: (short URL via git.io)
+    wget https://git.io/vp4EH -O /usr/local/sbin/raspi-myconfig
+    chmod 744 /usr/local/sbin/raspi-myconfig
+### méthode 1.1:
     wget https://raw.githubusercontent.com/steneor/raspi-myconfig/master/raspi-myconfig -O /usr/local/sbin/raspi-myconfig
     chmod 744 /usr/local/sbin/raspi-myconfig
+
 ### méthode 2:
     cd /tmp
     wget https://github.com/steneor/raspi-myconfig/archive/master.zip

@@ -47,7 +47,7 @@ do_finish() {
 }
 
 do_adduser() {
-	ADDUSER_NAME=$(whiptail --inputbox "Username / nom utilisé pour la crétion de l'ulisiateur" 20 70 3>&1 1>&2 2>&3)
+	ADDUSER_NAME=$(whiptail --inputbox "Username / nom utilisé pour la création de l'utilisateur" 20 70 3>&1 1>&2 2>&3)
   if [ $? -ne 0 ]; then
     return 1;
   fi
@@ -65,7 +65,7 @@ do_deluser_pi() {
 }
 do_permit_root_login() {
   whiptail --msgbox "\
-Editer le fichier /etc/ssh/sshd_congig puis vérifier que:
+Editer le fichier /etc/ssh/sshd_config puis vérifier que:
 	PermitRootLogin yes. (authentification par mot de passe)
 	ou bien
 	PermitRootLogin without-password. (authentification uniquement par clé)
