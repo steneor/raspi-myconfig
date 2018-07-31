@@ -9,7 +9,7 @@ CONFIG=/boot/config.txt
 # Variables utilisées par ssmtp  (free.fr)
 EMAIL_ROOT=machin@free.fr
 EMAIL_SMTP=smtp.free.fr
-VERSION="1.1"
+VERSION="1.2"
 
 calc_wt_size() {
   # NOTE: it's tempting to redirect stderr to /dev/null, so supress error 
@@ -67,7 +67,8 @@ do_permit_root_login() {
   whiptail --msgbox "\
 Editer le fichier /etc/ssh/sshd_config puis vérifier que:
 	PermitRootLogin yes. (authentification par mot de passe)
-	ou bien
+	-ou- -et-
+	PubkeyAuthentication yes (authentification uniquement par clé)
 	PermitRootLogin without-password. (authentification uniquement par clé)
 
 Le fichier /etc/skel/.bashrc va etre copier /root/.bashrc
@@ -94,7 +95,7 @@ Quelques ls aliases:
 #some more ls aliases
 alias ll='ls -l'
 alias la='ls -la'
-alias lt='lt -lt'
+alias lt='ls -lt'
 EOF
 
   printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
@@ -174,17 +175,17 @@ do_install_mail_ssmtp(){
     return 1;
   fi
   printf "Paramètres pour ssmtp\n" &&
-  EMAIL_ROOT=$(whiptail --inputbox "Adresse du serveur smtp utilisé" 20 70 $EMAIL_SMTP 3>&1 1>&2 2>&3)
+  EMAIL_SSMTP=$(whiptail --inputbox "Adresse du serveur smtp utilisé" 20 70 $EMAIL_SMTP 3>&1 1>&2 2>&3)
   if [ $? -ne 0 ]; then
     return 1;
   fi
   
-  apt-get install -y ssmtp mailutils mpack &&
+#  apt-get install -y ssmtp mailutils mpack &&
   cat <<EOF >> /etc/ssmtp/ssmtp.conf
 
 #rajouter par raspi_myconfig
 root=$EMAIL_ROOT
-mailhub=$EMAIL_SMTP
+mailhub=$EMAIL_SSMTP
 FromLineOverride=NO
 EOF
   cat <<EOF >> /etc/ssmtp/revaliases
@@ -263,7 +264,7 @@ do_mount_freebox() {
 
   cat <<\EOF >> /etc/fstab
 #rajouter par raspi-myconfig
-//mafreebox.freebox.fr/Disque\040dur /media/freebox cifs _netdev,rw,users,iocharset=utf8,uid=1000,credentials=/root/.smbcredentials,sec=ntlm,file_mode=0777,dir_mode=0777 0 0
+//mafreebox.freebox.fr/Disque\040dur /media/freebox cifs _netdev,rw,users,iocharset=utf8,uid=1000,credentials=/root/.smbcredentials,sec=ntlm,file_mode=0777,dir_mode=0777,vers=1.0 0 0
 EOF
   cat <<\EOF >> /root/.smbcredentials
 username=
@@ -277,11 +278,16 @@ mount /media/freebox &&
 
 do_ip_fixe_eth0() {
   printf "ip fixe pour eth0\n" &&
-  cat <<\EOF >> /etc/dhcpcd.conf
+	IP=$(whiptail --inputbox "IP / IP fixe pour eth0" 20 70 192.168.0.40 3>&1 1>&2 2>&3)
+  if [ $? -ne 0 ]; then
+    return 1;
+  fi
+
+  cat <<EOF >> /tmp/dhcpcd.conf
 #rajouter par raspi-myconfig
 # static IP configuration pour eth0:
 interface eth0
-static ip_address=192.168.0.40/24
+static ip_address=$IP/24
 static routers=192.168.0.1
 static domain_name_servers=192.168.0.1 8.8.8.8
 EOF
@@ -322,8 +328,54 @@ EOF
   return 0
 }
 
+do_ipv6_disable(){
+
+  cat <<EOF >> /etc/sysctl.conf
+
+# Rajouter par raspi-myconfig pour desactiver ipv6
+# désactivation de ipv6 pour toutes les interfaces
+net.ipv6.conf.all.disable_ipv6 = 1
+
+# désactivation de l’auto configuration pour toutes les interfaces
+net.ipv6.conf.all.autoconf = 0
+
+# désactivation de ipv6 pour les nouvelles interfaces (ex:si ajout de carte réseau)
+net.ipv6.conf.default.disable_ipv6 = 1
+
+# désactivation de l’auto configuration pour les nouvelles interfaces
+net.ipv6.conf.default.autoconf = 0
+EOF
+
+  sysctl -p
+
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
+do_menu_network() {
+  FUN=$(whiptail --title "RPI Software Configuration Tool (http://github.com/steneor/raspi-myconfig)" --menu "Menu Network" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
+    "N1 IP fixe eth0 " "edit /etc/dhcpcd.conf -> interface eth0 ..." \
+    "N2 IP fixe wlan0" "edit /etc/dhcpcd.conf -> interface wlan0 ..." \
+    "N3 IPV6 désactivation" "edit /etc/sysctl.conf -> puis sysctl -p" \
+    "N4 rien" "do_rien" \
+    3>&1 1>&2 2>&3)
+  RET=$?
+  if [ $RET -eq 1 ]; then
+    return 0
+  elif [ $RET -eq 0 ]; then
+    case "$FUN" in
+      N1\ *) do_ip_fixe_eth0 ;;
+      N2\ *) do_ip_fixe_wlan0 ;;
+      N3\ *) do_ipv6_disable ;;
+      N4\ *) do_rien ;;
+      *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
+    esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
+  fi
+}
+
 do_menu_security() {
-  FUN=$(whiptail --title "Raspberry Pi Software Configuration Tool (raspi-myconfig)" --menu "Menu Sécurité" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
+  FUN=$(whiptail --title "RPI Software Configuration Tool (http://github.com/steneor/raspi-myconfig)" --menu "Menu Sécurité" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
     "A1 Add utilisateur" "Ajout d'un utilisateur, (adduser --gecos GECOS ernesto)" \
     "A2 Del utilisateur pi" "Supression de l'utilisateur pi (deluser --remove-home pi)" \
     "A3 Permit root login" "edit /etc/ssh/sshd_congig ->PermitRootLogin=yes" \
@@ -346,7 +398,7 @@ do_menu_security() {
 }
 
 do_menu_add_soft() {
-  FUN=$(whiptail --title "Raspberry Pi Software Configuration Tool (raspi-myconfig)" --menu "Menu Sécurité" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
+  FUN=$(whiptail --title "RPI Software Configuration Tool (http://github.com/steneor/raspi-myconfig)" --menu "Menu Softs" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
     "B1 Update Ugrade" "apt-get upade apt-get upgrade" \
     "B2 install git" "Installation de git" \
     "B3 Install samba" "apt-get install samba samba-common-bin" \
@@ -381,12 +433,11 @@ do_menu_add_soft() {
 #
 calc_wt_size
 while true; do
-  FUN=$(whiptail --title "Raspberry Pi Software Configuration Tool (raspi-myconfig)" --menu "Setup Options" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
+  FUN=$(whiptail --title "RPI Software Configuration Tool (http://github.com/steneor/raspi-myconfig)" --menu "Setup Options" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
     "1 Menu Sécurité" "Configuration de la Sécurité" \
-    "2 installation softs" "Installation de divers logiciels" \
-    "3 mount freebox" "mount freebox sur /media/freebox" \
-    "4 IP fixe eth0" "edit /etc/dhcpcd.conf -> interface eth0 ..." \
-    "5 IP fixe wlan0" "edit /etc/dhcpcd.conf -> interface wlan0 ..." \
+    "2 Menu Logicels" "Installation de divers logiciels" \
+    "3 Menu Network" "IP fixe eth0 wlan0 ipv6-off ..." \
+    "4 mount freebox" "mount freebox sur /media/freebox" \
     "9 A propos raspi-myconfig" "A propos de cet utilitaire de configuration" \
     3>&1 1>&2 2>&3)
   RET=$?
@@ -396,9 +447,8 @@ while true; do
     case "$FUN" in
       1\ *) do_menu_security ;;
       2\ *) do_menu_add_soft ;;
-      3\ *) do_mount_freebox ;;
-      4\ *) do_ip_fixe_eth0 ;;
-      5\ *) do_ip_fixe_wlan0 ;;
+      3\ *) do_menu_network ;;
+      4\ *) do_mount_freebox ;;
       9\ *) do_apropos ;;
       *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1

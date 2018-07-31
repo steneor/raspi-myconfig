@@ -17,6 +17,10 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
     cp -f raspi-myconfig-master/raspi-myconfig /usr/local/sbin/raspi-myconfig
     rm /tmp/master.zip
     rm -r /tmp/raspi-myconfig-master
+
+### méthode 3:
+    git clone https://github.com/steneor/raspi-myconfig
+
 ## Pour l'exécuter: raspi-myconfig
 	raspi-myconfig
 
@@ -26,7 +30,7 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
 ### Del utilisateur pi
 ### Permit root login
 ### Update this tool
-## Menu softs
+## Menu Logiciels
 ### Update Ugrade
 ### Install git
 ### Install samba
@@ -35,7 +39,8 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
 ### Install mail smtp
 ### Install logwatch
 ### Install webmin
-## Menu Hard
+## Menu Network
 ### IP fixe eth0
 ### IP fixe Wlan0
+### IPV6 désactivation
 ### Mount freebox
