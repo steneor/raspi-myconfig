@@ -5,10 +5,10 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
 ## Pour l'installer:
 ### méthode 1: (short URL via git.io)
     wget https://git.io/vp4EH -O /usr/local/sbin/raspi-myconfig
-    chmod 744 /usr/local/sbin/raspi-myconfig
+    chmod 700 /usr/local/sbin/raspi-myconfig
 ### méthode 1.1:
     wget https://raw.githubusercontent.com/steneor/raspi-myconfig/master/raspi-myconfig -O /usr/local/sbin/raspi-myconfig
-    chmod 744 /usr/local/sbin/raspi-myconfig
+    chmod 700 /usr/local/sbin/raspi-myconfig
 
 ### méthode 2:
     cd /tmp
@@ -36,7 +36,7 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
 ### Install samba
 ### Install LAMP
 ### Install wiringpi
-### Install mail smtp
+### Install mail ssmtp
 ### Install logwatch
 ### Install webmin
 ## Menu Network
