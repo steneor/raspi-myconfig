@@ -88,6 +88,16 @@ Quelques ls aliases:
 	\
 " 25 70 1
 
+    cat <<\EOF >> /etc/ssh/sshd_config
+#rajouter par raspi-myconfig
+PermitRootLogin yes
+PubkeyAuthentication yes
+#authentification uniquement par clé
+#PermitRootLogin without-password
+EOF
+
+
+
   cp /etc/skel/.bashrc /root &&
   sed -i "s/01;32m/01;31m/g" /root/.bashrc &&
     cat <<\EOF >> /root/.bashrc
@@ -204,7 +214,7 @@ EOF
 }
 
 do_install_logwatch(){
-  apt-get install logwtach &&
+  apt-get install logwatch &&
   cat <<\EOF >> /usr/share/logwatch/default.conf/logwatch.conf
 
 #rajouter par raspi_myconfig
@@ -283,7 +293,7 @@ do_ip_fixe_eth0() {
     return 1;
   fi
 
-  cat <<EOF >> /tmp/dhcpcd.conf
+  cat <<EOF >> /etc/dhcpcd.conf
 #rajouter par raspi-myconfig
 # static IP configuration pour eth0:
 interface eth0
