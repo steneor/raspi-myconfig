@@ -27,6 +27,26 @@ calc_wt_size() {
   WT_MENU_HEIGHT=$(($WT_HEIGHT-7))
 }
 
+save_auto_incr() {
+	#sauvegarde d'un fichier du style /path/fichier vers /path/fichier.save.001 
+    ext="save"   # fichier sauvegarder du style fichier.save.001
+
+    if [ -e "$1" ] ; then  #si le fichier a sauvegarder existe
+    	if find $1.$ext.* > /dev/null 2>&1 ; then # s il existe deja une sauvegarde
+        	last_file=$(ls "$1"."$ext".* | sort -rh | head -n 1)  #nom de la derniere sauvegarde
+		    i=$( echo ${last_file##*.} | sed -e 's/^0\+//')   #conversion string to int (sans les zero)
+		    new_i=$(printf "%03d\n" $((i+1)))   #numéro de la nouvelle sauvegarde
+		else
+			new_i="001"  #numéro de la première sauvegarde
+       fi
+
+        cp -p "$1" "$1"."$ext"."$new_i"  #copy source vers sauvegarde -p conserve les droits
+
+    else
+        echo  Erreur dans la fonction "$0".save_auto_incr  le fichier "$1" n existe pas.
+    fi
+}
+
 do_apropos() {
   whiptail --msgbox "\
 https://github.com/steneor/raspi-myconfig
@@ -87,7 +107,8 @@ Quelques ls aliases:
 	alias lt='ls -lt'
 	\
 " 25 70 1
-
+	
+	save_auto_incr "/etc/ssh/sshd_config" &&
     cat <<\EOF >> /etc/ssh/sshd_config
 #rajouter par raspi-myconfig
 PermitRootLogin yes
@@ -120,7 +141,7 @@ do_rien() {
 
 do_update_raspy_myconfig() {
   wget https://raw.githubusercontent.com/steneor/raspi-myconfig/master/raspi-myconfig -O /usr/local/sbin/raspi-myconfig &&
-  chmod 744 /usr/local/sbin/raspi-myconfig &&
+  chmod 700 /usr/local/sbin/raspi-myconfig &&
   printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
   sleep 5 &&
   exec raspi-myconfig
@@ -143,7 +164,7 @@ do_update_ugrade() {
 
 do_install_samba() {
   apt-get install samba samba-common-bin &&
-  cp /etc/samba/smb.conf /etc/samba/smb.conf_backup &&
+  save_auto_incr "/etc/samba/smb.conf" &&
   cat <<\EOF >> /etc/samba/smb.conf
 #rajouter par raspi-myconfig
 [root]
