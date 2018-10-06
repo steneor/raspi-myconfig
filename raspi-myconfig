@@ -384,6 +384,40 @@ EOF
   return 0
 }
 
+do_numlocks(){
+	save_auto_incr "/etc/rc.local"
+
+	sed -i '/exit 0/d' /etc/rc.local
+
+	cat <<\EOF >> /etc/rc.local
+
+# Rajouter par raspi-myconfig pour activer numlocks du clavier au boot
+INITTY=/dev/tty[1-8]
+for tty in $INITTY; do
+     setleds -D +num < $tty
+done
+
+exit 0
+EOF
+}
+
+do_menu_divers() {
+  FUN=$(whiptail --title "RPI Software Configuration Tool (http://github.com/steneor/raspi-myconfig)" --menu "Menu Divers" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
+    "D1 numlocks " "edit /etc/rc.local -> INITTY setleds -D +num < $tty ..." \
+    "D4 rien" "do_rien" \
+    3>&1 1>&2 2>&3)
+  RET=$?
+  if [ $RET -eq 1 ]; then
+    return 0
+  elif [ $RET -eq 0 ]; then
+    case "$FUN" in
+      D1\ *) do_numlocks ;;
+      D4\ *) do_rien ;;
+      *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
+    esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
+  fi
+}
+
 do_menu_network() {
   FUN=$(whiptail --title "RPI Software Configuration Tool (http://github.com/steneor/raspi-myconfig)" --menu "Menu Network" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
     "N1 IP fixe eth0 " "edit /etc/dhcpcd.conf -> interface eth0 ..." \
@@ -468,7 +502,8 @@ while true; do
     "1 Menu Sécurité" "Configuration de la Sécurité" \
     "2 Menu Logicels" "Installation de divers logiciels" \
     "3 Menu Network" "IP fixe eth0 wlan0 ipv6-off ..." \
-    "4 mount freebox" "mount freebox sur /media/freebox" \
+    "4 Menu Divers" "numlocks ..." \
+    "5 mount freebox" "mount freebox sur /media/freebox" \
     "9 A propos raspi-myconfig" "A propos de cet utilitaire de configuration" \
     3>&1 1>&2 2>&3)
   RET=$?
@@ -479,7 +514,8 @@ while true; do
       1\ *) do_menu_security ;;
       2\ *) do_menu_add_soft ;;
       3\ *) do_menu_network ;;
-      4\ *) do_mount_freebox ;;
+      4\ *) do_menu_divers ;;
+      5\ *) do_mount_freebox ;;
       9\ *) do_apropos ;;
       *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
