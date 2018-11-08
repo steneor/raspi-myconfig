@@ -184,7 +184,7 @@ EOF
 }
 
 do_install_LAMP() {
-  apt install mariadb-client mariadb-server &&
+  apt install mariadb-server mariadb-client &&
   apt install php7.0 php7.0-mysql &&
   apt install apache2 libapache2-mod-php7.0
   printf "Sleeping 5 seconds before return 0\n" &&
