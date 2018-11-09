@@ -129,9 +129,18 @@ alias la='ls -la'
 alias lt='ls -lt'
 EOF
 
+  mkdir /root/.ssh &&
   printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
   sleep 5 &&
   exec raspi-myconfig
+}
+do_root_password(){
+
+  passwd root
+  printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
+  sleep 5 &&
+  exec raspi-myconfig
+
 }
 do_rien() {
   printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
@@ -186,9 +195,31 @@ EOF
 do_install_LAMP() {
   apt install mariadb-server mariadb-client &&
   apt install php7.0 php7.0-mysql &&
-  apt install apache2 libapache2-mod-php7.0
+  apt install apache2 libapache2-mod-php7.0 &&
   printf "Sleeping 5 seconds before return 0\n" &&
   sleep 5 &&
+  whiptail --msgbox "\
+Fin de personnalisation de linstallation de mariadb-client
+dans une console executer: mysql_secure_installation 
+puis saisir un mot de passe pour root, garder les autres options par défaut.
+Change the root password? [Y/n]
+New password:
+Re-enter new password:
+Remove anonymous users? [Y/n]
+Disallow root login remotely? [Y/n]
+Remove test database and access to it? [Y/n]
+Reload privilege tables now? [Y/n]
+
+
+Modifications pour que root puisse se connecter via phpmyadmin
+$ mysql -uroot -pmotdepasse
+MariaDB [(none)]> use mysql
+MariaDB [mysql]> UPDATE user SET plugin='' WHERE User='root';
+MariaDB [mysql]> FLUSH PRIVILEGES;
+MariaDB [mysql]> quit
+
+\
+" 25 70 1
   return 0
 }
 
@@ -445,7 +476,8 @@ do_menu_security() {
     "A1 Add utilisateur" "Ajout d'un utilisateur, (adduser --gecos GECOS ernesto)" \
     "A2 Del utilisateur pi" "Supression de l'utilisateur pi (deluser --remove-home pi)" \
     "A3 Permit root login" "edit /etc/ssh/sshd_congig ->PermitRootLogin=yes" \
-    "A4 rien" "do_rien" \
+    "A4 root password" "mot de passe pour root -> passwd root" \
+    "A5 rien" "do_rien" \
     "A0 Update this tool" "the latest version on https://github.com/steneor/raspi-myconfig" \
     3>&1 1>&2 2>&3)
   RET=$?
@@ -456,7 +488,8 @@ do_menu_security() {
       A1\ *) do_adduser ;;
       A2\ *) do_deluser_pi ;;
       A3\ *) do_permit_root_login ;;
-      A4\ *) do_rien ;;
+      A4\ *) do_root_password ;;
+      A5\ *) do_rien ;;
       A0\ *) do_update_raspy_myconfig ;;
       *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
@@ -468,11 +501,12 @@ do_menu_add_soft() {
     "B1 Update Ugrade" "apt-get upade apt-get upgrade" \
     "B2 install git" "Installation de git" \
     "B3 Install samba" "apt-get install samba samba-common-bin" \
-    "B4 Install LAMP" "Install mariadb-server apache php" \
-    "B5 Install wiringpi" "apt install wiringpi" \
-    "B6 Install mail ssmtp" "apt-get install ssmtp mailutils mpack" \
-    "B7 Install logwatch" "apt-get install logwatch" \
-    "B8 Install webmin" "Webmin ->http://www.webmin.com/deb.html" \
+    "B4 Install LAMP" "Install mariadb-server apache php phpmyadmin" \
+    "B5 Install phpmyadmin" "Install phpmyadmin et /etc.init.d/phpmyadmin start | stop" \
+    "B6 Install wiringpi" "apt install wiringpi" \
+    "B7 Install mail ssmtp" "apt-get install ssmtp mailutils mpack" \
+    "B8 Install logwatch" "apt-get install logwatch" \
+    "B9 Install webmin" "Webmin ->http://www.webmin.com/deb.html" \
     "B0 Install de tout" "tout installer ...Pas encore disponible" \
     3>&1 1>&2 2>&3)
   RET=$?
@@ -484,10 +518,11 @@ do_menu_add_soft() {
       B2\ *) do_install_git ;;
       B3\ *) do_install_samba ;;
       B4\ *) do_install_LAMP ;;
-      B5\ *) do_install_wiringpi ;;
-      B6\ *) do_install_mail_ssmtp ;;
-      B7\ *) do_install_logwatch ;;
-      B8\ *) do_install_webmin ;;
+      B5\ *) do_install_phpmyadmin ;;
+      B6\ *) do_install_wiringpi ;;
+      B7\ *) do_install_mail_ssmtp ;;
+      B8\ *) do_install_logwatch ;;
+      B9\ *) do_install_webmin ;;
       B0\ *) do_install_all ;;
       *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
