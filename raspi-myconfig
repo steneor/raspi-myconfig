@@ -429,6 +429,9 @@ for tty in $INITTY; do
      setleds -D +num < $tty
 done
 
+# Rajouter par raspi-myconfig pour activer la led Caps Lock du clavier
+echo keycode 58 = Caps_Lock | loadkeys -
+
 exit 0
 EOF
 }
