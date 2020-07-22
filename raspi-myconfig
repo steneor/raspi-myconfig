@@ -172,7 +172,7 @@ do_update_ugrade() {
 }
 
 do_install_samba() {
-  apt-get install samba samba-common-bin &&
+  apt-get install samba samba-common-bin smbclient cifs-utils &&
   save_auto_incr "/etc/samba/smb.conf" &&
   cat <<\EOF >> /etc/samba/smb.conf
 #rajouter par raspi-myconfig
@@ -186,6 +186,8 @@ do_install_samba() {
         allow hosts = 192.168.0.
         directory mode = 777
 EOF
+# nécessaire pour win10 
+  sed -i "/\\[global\\]/a client min protocol = SMB3" /etc/samba/smb.conf
   systemctl restart smbd &&
   printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
   sleep 5 &&
@@ -242,7 +244,7 @@ do_install_mail_ssmtp(){
     return 1;
   fi
   
-#  apt-get install -y ssmtp mailutils mpack &&
+  apt-get install -y ssmtp mailutils mpack &&
   cat <<EOF >> /etc/ssmtp/ssmtp.conf
 
 #rajouter par raspi_myconfig
