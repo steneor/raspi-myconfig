@@ -1,7 +1,6 @@
 #!/bin/sh
 # Part of raspi-myconfig http://github.com/steneor/raspi-myconfig
 #
-
 INTERACTIVE=True
 ASK_TO_REBOOT=0
 BLACKLIST=/etc/modprobe.d/raspi-blacklist.conf
