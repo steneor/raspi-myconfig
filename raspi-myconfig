@@ -100,10 +100,11 @@ Le prompt de root en rouge  (modif de /root/.bashrc)
 
 	(le 32m devient 31m  (32 ->vert; 31->rouge; 33 ->jaune) 
 
-Quelques ls aliases:
+Quelques ls aliases et plus:
 	alias ll='ls -l'
 	alias la='ls -la'
 	alias lt='ls -lt'
+	alias hg="history | grep -i"
 	\
 " 25 70 1
 	
@@ -126,6 +127,7 @@ EOF
 alias ll='ls -l'
 alias la='ls -la'
 alias lt='ls -lt'
+alias hg="history | grep -i"
 EOF
 
   mkdir /root/.ssh &&
