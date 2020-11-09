@@ -128,6 +128,9 @@ alias ll='ls -l'
 alias la='ls -la'
 alias lt='ls -lt'
 alias hg="history | grep -i"
+# Utilisation de hg
+# hg commande
+# puis !xxx pour executer la commande
 EOF
 
   mkdir /root/.ssh &&
@@ -275,6 +278,17 @@ do_install_logwatch(){
 #rajouter par raspi_myconfig
 Output = mail
 EOF
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
+do_install_fail2ban(){
+#  apt-get install fail2ban &&
+  save_auto_incr "/etc/fail2ban/jail.conf" &&
+  sed -i "/^\\[DEFAULT\\]/a ignoreip = 127.0.0.1 192.168.0.0" /etc/fail2ban/jail.conf
+
+  printf "Edit /etc/fail2ban/jail.conf pour modifié la config"
   printf "Sleeping 5 seconds before return 0" &&
   sleep 5 &&
   return 0
@@ -483,7 +497,9 @@ do_menu_security() {
     "A2 Del utilisateur pi" "Supression de l'utilisateur pi (deluser --remove-home pi)" \
     "A3 Permit root login" "edit /etc/ssh/sshd_congig ->PermitRootLogin=yes" \
     "A4 root password" "mot de passe pour root -> passwd root" \
-    "A5 rien" "do_rien" \
+    "A5 Install logwatch" "apt-get install logwatch" \
+    "A6 Install fail2ban" "apt-get install fail2ban -> Edit /etc/fail2ban/jail.conf" \
+    "A7 rien" "do_rien" \
     "A0 Update this tool" "the latest version on https://github.com/steneor/raspi-myconfig" \
     3>&1 1>&2 2>&3)
   RET=$?
@@ -495,7 +511,9 @@ do_menu_security() {
       A2\ *) do_deluser_pi ;;
       A3\ *) do_permit_root_login ;;
       A4\ *) do_root_password ;;
-      A5\ *) do_rien ;;
+      A5\ *) do_install_logwatch ;;
+      A6\ *) do_install_fail2ban ;;
+      A7\ *) do_rien ;;
       A0\ *) do_update_raspy_myconfig ;;
       *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
@@ -511,8 +529,7 @@ do_menu_add_soft() {
     "B5 Install phpmyadmin" "Install phpmyadmin et /etc.init.d/phpmyadmin start | stop" \
     "B6 Install wiringpi" "apt install wiringpi" \
     "B7 Install mail ssmtp" "apt-get install ssmtp mailutils mpack" \
-    "B8 Install logwatch" "apt-get install logwatch" \
-    "B9 Install webmin" "Webmin ->http://www.webmin.com/deb.html" \
+    "B8 Install webmin" "Webmin ->http://www.webmin.com/deb.html" \
     "B0 Install de tout" "tout installer ...Pas encore disponible" \
     3>&1 1>&2 2>&3)
   RET=$?
@@ -527,8 +544,7 @@ do_menu_add_soft() {
       B5\ *) do_install_phpmyadmin ;;
       B6\ *) do_install_wiringpi ;;
       B7\ *) do_install_mail_ssmtp ;;
-      B8\ *) do_install_logwatch ;;
-      B9\ *) do_install_webmin ;;
+      B8\ *) do_install_webmin ;;
       B0\ *) do_install_all ;;
       *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1

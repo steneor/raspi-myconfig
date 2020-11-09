@@ -29,6 +29,8 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
 ### Add utilisateur
 ### Del utilisateur pi
 ### Permit root login
+### Install logwatch
+### Install fail2ban
 ### Update this tool
 ## Menu Logiciels
 ### Update Ugrade
@@ -37,7 +39,6 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
 ### Install LAMP
 ### Install wiringpi
 ### Install mail ssmtp
-### Install logwatch
 ### Install webmin
 ## Menu Network
 ### IP fixe eth0
