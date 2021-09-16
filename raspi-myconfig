@@ -101,6 +101,12 @@ Le prompt de root en rouge  (modif de /root/.bashrc)
 
 	(le 32m devient 31m  (32 ->vert; 31->rouge; 33 ->jaune) 
 
+Le dossier actif du prompt est affiché en jaune car le bleu n'est lisisble
+
+Avec la commande ls les répertoires sont affichés en jaune car le bleu n'est lisisble
+
+
+
 Quelques ls aliases et plus:
 	alias ll='ls -l'
 	alias la='ls -la'
@@ -122,6 +128,10 @@ EOF
 
   cp /etc/skel/.bashrc /root &&
   sed -i "s/01;32m/01;31m/g" /root/.bashrc &&
+  sed -i "s/01;34m/01;33m/g" /root/.bashrc &&
+  dircolors -p > /root/.dircolors
+  sed -i "s/DIR 01;34/DIR 01;33/g" /root/.dircolors &&
+
     cat <<\EOF >> /root/.bashrc
 #rajouter par raspi-myconfig
 #some more ls aliases
@@ -130,11 +140,12 @@ alias la='ls -la'
 alias lt='ls -lt'
 alias hg="history | grep -i"
 # Utilisation de hg
-# hg commande
-# puis !xxx pour executer la commande
+# hg commande   -> affiche l historique des commandes qui contiennent commande
+# puis !xxx pour executer la commande xxx étant le numero de la commande
 EOF
 
   mkdir /root/.ssh &&
+
   printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
   sleep 5 &&
   exec raspi-myconfig
