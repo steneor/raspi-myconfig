@@ -101,19 +101,17 @@ Le prompt de root en rouge  (modif de /root/.bashrc)
 
 	(le 32m devient 31m  (32 ->vert; 31->rouge; 33 ->jaune) 
 
-Le dossier actif du prompt est affiché en jaune car le bleu n'est lisisble
+Le dossier actif du prompt est affiché en jaune car le bleu n'est pas lisible
 
-Avec la commande ls les répertoires sont affichés en jaune car le bleu n'est lisisble
-
-
+Avec la commande ls les répertoires sont affichés en jaune car le bleu n'est pas lisible
 
 Quelques ls aliases et plus:
 	alias ll='ls -l'
 	alias la='ls -la'
 	alias lt='ls -lt'
-	alias hg="history | grep -i"
+	alias hg=\"history | grep -i\"
 	\
-" 25 70 1
+" 35 75 1
 	
 	save_auto_incr "/etc/ssh/sshd_config" &&
     cat <<\EOF >> /etc/ssh/sshd_config
@@ -142,7 +140,7 @@ alias hg="history | grep -i"
 # Utilisation de hg
 # hg commande   -> affiche l historique des commandes qui contiennent commande
 # puis !xxx pour executer la commande xxx étant le numero de la commande
-EOF
+EOF 
 
   mkdir /root/.ssh &&
 
