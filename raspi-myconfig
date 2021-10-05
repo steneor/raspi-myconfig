@@ -11,8 +11,8 @@ EMAIL_SMTP=smtp.free.fr
 VERSION="1.3"
 
 calc_wt_size() {
-  # NOTE: it's tempting to redirect stderr to /dev/null, so supress error 
-  # output from tput. However in this case, tput detects neither stdout or 
+  # NOTE: it's tempting to redirect stderr to /dev/null, so supress error
+  # output from tput. However in this case, tput detects neither stdout or
   # stderr is a tty and so only gives default 80, 24 values
   WT_HEIGHT=17
   WT_WIDTH=$(tput cols)
@@ -27,7 +27,7 @@ calc_wt_size() {
 }
 
 save_auto_incr() {
-	#sauvegarde d'un fichier du style /path/fichier vers /path/fichier.save.001 
+	#sauvegarde d'un fichier du style /path/fichier vers /path/fichier.save.001
     ext="save"   # fichier sauvegarder du style fichier.save.001
 
     if [ -e "$1" ] ; then  #si le fichier a sauvegarder existe
@@ -48,7 +48,7 @@ save_auto_incr() {
 
 do_apropos() {
   whiptail --msgbox "\
-raspi-myconfig version: $VERSION  
+raspi-myconfig version: $VERSION
 https://github.com/steneor/raspi-myconfig
 Cet utilitaire va me permettre de personnaliser la configuration
 de mon RPI.\
@@ -99,7 +99,7 @@ Le prompt de root en rouge  (modif de /root/.bashrc)
 	devient
 	PS1='\${debian_chroot:+(\$debian_chroot)}\[\033[01;31m\] ...
 
-	(le 32m devient 31m  (32 ->vert; 31->rouge; 33 ->jaune) 
+	(le 32m devient 31m  (32 ->vert; 31->rouge; 33 ->jaune)
 
 Le dossier actif du prompt est affiché en jaune car le bleu n'est pas lisible
 
@@ -112,7 +112,7 @@ Quelques ls aliases et plus:
 	alias hg=\"history | grep -i\"
 	\
 " 35 75 1
-	
+
 	save_auto_incr "/etc/ssh/sshd_config" &&
     cat <<\EOF >> /etc/ssh/sshd_config
 #rajouter par raspi-myconfig
@@ -140,7 +140,7 @@ alias hg="history | grep -i"
 # Utilisation de hg
 # hg commande   -> affiche l historique des commandes qui contiennent commande
 # puis !xxx pour executer la commande xxx étant le numero de la commande
-EOF 
+EOF
 
   mkdir /root/.ssh &&
 
@@ -200,7 +200,7 @@ do_install_samba() {
         allow hosts = 192.168.0.
         directory mode = 777
 EOF
-# nécessaire pour win10 
+# nécessaire pour win10
   sed -i "/\\[global\\]/a client min protocol = SMB3" /etc/samba/smb.conf
   systemctl restart smbd &&
   printf "Sleeping 5 seconds before reloading raspi-myconfig\n" &&
@@ -216,7 +216,7 @@ do_install_LAMP() {
   sleep 5 &&
   whiptail --msgbox "\
 Fin de personnalisation de linstallation de mariadb-client
-dans une console executer: mysql_secure_installation 
+dans une console executer: mysql_secure_installation
 puis saisir un mot de passe pour root, garder les autres options par défaut.
 Change the root password? [Y/n]
 New password:
@@ -257,7 +257,7 @@ do_install_mail_ssmtp(){
   if [ $? -ne 0 ]; then
     return 1;
   fi
-  
+
   apt-get install -y ssmtp mailutils mpack &&
   cat <<EOF >> /etc/ssmtp/ssmtp.conf
 
@@ -312,7 +312,7 @@ EOF
   cd /root
   wget http://www.webmin.com/jcameron-key.asc
   apt-key add jcameron-key.asc
-  
+
   apt-get install apt-transport-https
   apt-get update
   apt-get install webmin
@@ -333,7 +333,7 @@ if [ "$1" = "start" ];then
 else if [ "$1" = "stop" ];then
   chmod 000 /usr/share/phpmyadmin
   echo "stoping phpmyadmin -> interdire acces au repertoire: chmod 000 /usr/share/phpmyadmin"
-  
+
   else
         echo "usage phpmyadmin start | stop"
   fi
