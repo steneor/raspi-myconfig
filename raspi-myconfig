@@ -296,7 +296,7 @@ EOF
 do_install_fail2ban(){
   apt-get install fail2ban &&
   save_auto_incr "/etc/fail2ban/jail.conf" &&
-  sed -i "/^\\[DEFAULT\\]/a ignoreip = 127.0.0.1 192.168.0.0" /etc/fail2ban/jail.conf
+  sed -i "/^\\[DEFAULT\\]/a ignoreip = 127.0.0.1 192.168.0.0/24" /etc/fail2ban/jail.conf
 
   printf "Edit /etc/fail2ban/jail.conf pour modifier la config \n"
   printf "Sleeping 5 seconds before return 0" &&
