@@ -1,4 +1,4 @@
-# Utilitaire de personnalisation de mon RPI STRETCH, BUSTER
+# Utilitaire de personnalisation de mon RPI STRETCH, BUSTER, BULLSEYE
 
 Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry PI raspbian strectch**
 
