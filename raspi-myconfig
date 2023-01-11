@@ -240,7 +240,13 @@ MariaDB [mysql]> quit
 }
 
 do_install_wiringpi() {
-  apt install wiringpi &&
+  cd /tmp &&
+  wget https://project-downloads.drogon.net/wiringpi-latest.deb &&
+  dpkg -i wiringpi-latest.deb &&
+  gpio -v &&
+
+  #apt install wiringpi &&
+
   printf "Sleeping 5 seconds before return 0\n" &&
   sleep 5 &&
   return 0
