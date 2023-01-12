@@ -329,22 +329,34 @@ EOF
 
 do_install_phpmyadmin() {
   apt-get install phpmyadmin &&
-  printf "Creation fichier /etc/init.d/phpmyadmin 'start|stop).\n" &&
+  printf "Creation fichier /etc/init.d/phpmyadmin start|stop|status).\n" &&
 
   cat <<\EOF > /etc/init.d/phpmyadmin
 #!/bin/bash
 if [ "$1" = "start" ];then
   chmod 755 /usr/share/phpmyadmin
   echo "starting phpmyadmin -> autorise acces au repertoire: chmod 755 /usr/share/phpmyadmin"
-else if [ "$1" = "stop" ];then
-  chmod 000 /usr/share/phpmyadmin
-  echo "stoping phpmyadmin -> interdire acces au repertoire: chmod 000 /usr/share/phpmyadmin"
-
-  else
-        echo "usage phpmyadmin start | stop"
-  fi
+exit 0
 fi
 
+if [ "$1" = "stop" ];then
+  chmod 000 /usr/share/phpmyadmin
+  echo "stoping phpmyadmin -> interdire acces au repertoire: chmod 000 /usr/share/phpmyadmin"
+exit 0
+fi
+
+if [ "$1" = "status" ];then
+        perms=$(stat -c %a "/usr/share/phpmyadmin")
+        if [ $perms = 0 ];then
+                echo "phpmyadmin is disabled"
+        fi
+        if [ $perms = 755 ];then
+                echo "phpmyadmin is enabled"
+        fi
+exit 0
+fi
+
+echo "usage phpmyadmin start | stop | status"
 exit 0
 EOF
   chmod +744 /etc/init.d/phpmyadmin &&
