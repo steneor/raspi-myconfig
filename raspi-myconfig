@@ -371,7 +371,7 @@ do_mount_freebox() {
 
   cat <<\EOF >> /etc/fstab
 #rajouter par raspi-myconfig
-//mafreebox.freebox.fr/Disque\040dur /media/freebox cifs _netdev,rw,users,iocharset=utf8,uid=1000,credentials=/root/.smbcredentials,sec=ntlm,file_mode=0777,dir_mode=0777,auto,x-systemd.automount,vers=1.0 0 0
+//mafreebox.freebox.fr/Disque\040dur /media/freebox cifs _netdev,rw,users,iocharset=utf8,uid=1000,credentials=/root/.smbcredentials,file_mode=0777,dir_mode=0777,auto,x-systemd.automount,vers=1.0 0 0
 EOF
 
   cat <<\EOF >> /root/.smbcredentials
