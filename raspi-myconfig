@@ -461,6 +461,49 @@ EOF
   return 0
 }
 
+do_iptables_nftables(){
+	# Authorise SAMBA uniquement à partir du reseau local
+	# Interdit tout acces à SAMBA depuis le web ...
+	#1) Insertion des regles (rules) selon la syntax iptables
+	iptables -A INPUT -s 192.168.0.0/24 -p udp -m udp --dport 137 -j ACCEPT &&
+	iptables -A INPUT -s 192.168.0.0/24 -p udp -m udp --dport 138 -j ACCEPT &&
+	iptables -A INPUT -s 192.168.0.0/24 -p tcp -m tcp --dport 139 -j ACCEPT &&
+	iptables -A INPUT -s 192.168.0.0/24 -p tcp -m tcp --dport 445 -j ACCEPT &&
+
+	iptables -A INPUT -p udp -m udp --dport 137 -j DROP &&
+	iptables -A INPUT -p udp -m udp --dport 138 -j DROP &&
+	iptables -A INPUT -p tcp -m tcp --dport 139 -j DROP &&
+	iptables -A INPUT -p tcp -m tcp --dport 445 -j DROP &&
+
+	#2)Rendre persistant les nouvelles régles
+	OS=$(lsb_release -is)		#raspbian
+    NAME=$(lsb_release -cs)		#buster or bullseye
+    VER=$(lsb_release -rs)		#10 or 11
+
+    if [ $NAME = "buster" ]
+    then
+			echo -n "buster"
+			#2.2) Pour debian buster et precedents
+			# Sauvegarde des regles dans /etc/iptables.up.rules (pour debian buster et precedents)
+#			iptables-save > /etc/iptables.up.rules
+			#les règles sont persistantes car /etc/iptables.up.rules est lu à chaque demarrage
+	elif [ $NAME = "bullseye" ]
+	then
+			echo -n "bullseye"
+			#2.1) Pour debian bullseye
+			# Sauvegarde des regles dans /etc/nftables.conf (pour debian bullseye)
+#			nft list ruleset > /etc/nftables.conf
+			#rendre les nouvelles règles persistantes
+#			systemctl enable nftables
+	else
+			echo -n "unknown:" $NAME
+	fi
+
+	printf "Sleeping 5 seconds before return 0" &&
+	sleep 5 &&
+	return 0
+}
+
 do_numlocks(){
 	save_auto_incr "/etc/rc.local"
 
@@ -503,7 +546,8 @@ do_menu_network() {
     "N1 IP fixe eth0 " "edit /etc/dhcpcd.conf -> interface eth0 ..." \
     "N2 IP fixe wlan0" "edit /etc/dhcpcd.conf -> interface wlan0 ..." \
     "N3 IPV6 désactivation" "edit /etc/sysctl.conf -> puis sysctl -p" \
-    "N4 rien" "do_rien" \
+    "N4 IPTABLE NFTABLES" "Autorise SAMBA uniquement à partir du reseau local" \
+    "N9 rien" "do_rien" \
     3>&1 1>&2 2>&3)
   RET=$?
   if [ $RET -eq 1 ]; then
@@ -513,7 +557,8 @@ do_menu_network() {
       N1\ *) do_ip_fixe_eth0 ;;
       N2\ *) do_ip_fixe_wlan0 ;;
       N3\ *) do_ipv6_disable ;;
-      N4\ *) do_rien ;;
+      N4\ *) do_iptables_nftables ;;
+      N9\ *) do_rien ;;
       *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
   fi
