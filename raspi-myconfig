@@ -327,8 +327,17 @@ EOF
   return 0
 }
 
+do_install_figlet(){     # ASCII Art
+  apt-get install figlet
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
 do_install_phpmyadmin() {
+#documentation https://docs.phpmyadmin.net/fr/latest/intro.html 
   apt-get install phpmyadmin &&
+# ajouter $cfg['LoginCookieValidity'] = 1440;dans /etc/phpmyadmin/config.inc.php
   printf "Creation fichier /etc/init.d/phpmyadmin start|stop|status).\n" &&
 
   cat <<\EOF > /etc/init.d/phpmyadmin
@@ -603,6 +612,7 @@ do_menu_add_soft() {
     "B6 Install wiringpi" "apt install wiringpi" \
     "B7 Install mail ssmtp" "apt-get install ssmtp mailutils mpack" \
     "B8 Install webmin" "Webmin ->http://www.webmin.com/deb.html" \
+    "B9 Install figlet" "figlet ASCII Art usage:figlet -f big texte" \
     "B0 Install de tout" "tout installer ...Pas encore disponible" \
     3>&1 1>&2 2>&3)
   RET=$?
@@ -618,6 +628,7 @@ do_menu_add_soft() {
       B6\ *) do_install_wiringpi ;;
       B7\ *) do_install_mail_ssmtp ;;
       B8\ *) do_install_webmin ;;
+      B9\ *) do_install_figlet ;;
       B0\ *) do_install_all ;;
       *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
