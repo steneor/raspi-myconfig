@@ -369,6 +369,13 @@ echo "usage phpmyadmin start | stop | status"
 exit 0
 EOF
   chmod +744 /etc/init.d/phpmyadmin &&
+
+# A rajouter dans /etc/phpmyadmin/config.inc.php
+# // Rajouter par raspi-myconfig
+# $sessionDuration = 60*60*24*7;
+# ini_set('session.gc_maxlifetime', $sessionDuration);
+# $cfg['LoginCookieValidity'] = $sessionDuration;
+
   printf "Sleeping 5 seconds before return 0" &&
   sleep 5 &&
   return 0
