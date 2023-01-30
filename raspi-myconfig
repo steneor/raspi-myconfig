@@ -527,8 +527,8 @@ do_install_dnsutils(){     # tools DNS -> dig nslookup
   return 0
 }
 
-do_install_vsftpd(){     # ASCII Art
-  apt-get install figlet
+do_install_vsftpd(){     # serveur vsftpd
+  apt-get install vsftpd
   printf "Sleeping 5 seconds before return 0" &&
   sleep 5 &&
   return 0
