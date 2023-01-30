@@ -337,7 +337,13 @@ do_install_figlet(){     # ASCII Art
 do_install_phpmyadmin() {
 #documentation https://docs.phpmyadmin.net/fr/latest/intro.html 
   apt-get install phpmyadmin &&
-# ajouter $cfg['LoginCookieValidity'] = 1440;dans /etc/phpmyadmin/config.inc.php
+  cat <<\EOF >> /etc/phpmyadmin/config.inc.php
+// Rajouter par raspi-myconfig
+$sessionDuration = 60*60*24*7;
+ini_set('session.gc_maxlifetime', $sessionDuration);
+$cfg['LoginCookieValidity'] = $sessionDuration;
+EOF
+
   printf "Creation fichier /etc/init.d/phpmyadmin start|stop|status).\n" &&
 
   cat <<\EOF > /etc/init.d/phpmyadmin
@@ -369,12 +375,6 @@ echo "usage phpmyadmin start | stop | status"
 exit 0
 EOF
   chmod +744 /etc/init.d/phpmyadmin &&
-
-# A rajouter dans /etc/phpmyadmin/config.inc.php
-# // Rajouter par raspi-myconfig
-# $sessionDuration = 60*60*24*7;
-# ini_set('session.gc_maxlifetime', $sessionDuration);
-# $cfg['LoginCookieValidity'] = $sessionDuration;
 
   printf "Sleeping 5 seconds before return 0" &&
   sleep 5 &&
@@ -520,6 +520,21 @@ do_iptables_nftables(){
 	return 0
 }
 
+do_install_dnsutils(){     # tools DNS -> dig nslookup
+  apt-get install dnsutils
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
+do_install_vsftpd(){     # ASCII Art
+  apt-get install figlet
+  printf "Sleeping 5 seconds before return 0" &&
+  sleep 5 &&
+  return 0
+}
+
+
 do_numlocks(){
 	save_auto_incr "/etc/rc.local"
 
@@ -563,6 +578,8 @@ do_menu_network() {
     "N2 IP fixe wlan0" "edit /etc/dhcpcd.conf -> interface wlan0 ..." \
     "N3 IPV6 désactivation" "edit /etc/sysctl.conf -> puis sysctl -p" \
     "N4 IPTABLE NFTABLES" "Autorise SAMBA uniquement à partir du reseau local" \
+    "N5 DNSUTILS" "Installation de dnsutils pour avoir les utilitaires dig, nslookup ..." \
+    "N6 VSFTPD" "Installation du serveur FTP vsftpd" \
     "N9 rien" "do_rien" \
     3>&1 1>&2 2>&3)
   RET=$?
@@ -574,6 +591,8 @@ do_menu_network() {
       N2\ *) do_ip_fixe_wlan0 ;;
       N3\ *) do_ipv6_disable ;;
       N4\ *) do_iptables_nftables ;;
+      N5\ *) do_install_dnsutils ;;
+      N6\ *) do_install_vsftpd ;;
       N9\ *) do_rien ;;
       *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
