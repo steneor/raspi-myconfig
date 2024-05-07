@@ -44,5 +44,5 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
 ### IP fixe eth0
 ### IP fixe Wlan0
 ### IPV6 désactivation
-### IPTABLE NFTABLES
+### IPTABLES NFTABLES
 ## Mount freebox
