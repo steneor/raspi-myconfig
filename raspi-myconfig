@@ -491,6 +491,14 @@ do_iptables_nftables(){
 	iptables -A INPUT -p tcp -m tcp --dport 139 -j DROP &&
 	iptables -A INPUT -p tcp -m tcp --dport 445 -j DROP &&
 
+	# Authorise mysql uniquement à partir du reseau local
+	# Interdit tout acces à mysql depuis le web ...
+	#1) Insertion des regles (rules) selon la syntax iptables
+	iptables -A INPUT -s 192.168.0.0/24 -p tcp -m tcp --dport 3306 -j ACCEPT &&
+
+	iptables -A INPUT -p tcp -m tcp --dport 3306 -j DROP &&
+
+
 	#2)Rendre persistant les nouvelles régles
 	OS=$(lsb_release -is)		#raspbian
     NAME=$(lsb_release -cs)		#buster or bullseye
