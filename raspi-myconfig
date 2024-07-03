@@ -320,12 +320,15 @@ EOF
 }
 
 do_install_logwatch(){
-  apt-get install logwatch &&
-  cat <<\EOF >> /usr/share/logwatch/default.conf/logwatch.conf
+  apt install logwatch &&
+  cp /usr/share/logwatch/default.conf/logwatch.conf /etc/logwatch/conf/logwatch.conf &&
+  cat <<\EOF >> /etc/logwatch/conf/logwatch.conf
 
 #rajouter par raspi_myconfig
 Output = mail
+MailFrom = root@domaine.com
 EOF
+  mkdir /var/cache/logwatch &&
   printf "Sleeping 5 seconds before return 0" &&
   sleep 5 &&
   return 0
