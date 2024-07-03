@@ -5,10 +5,12 @@ INTERACTIVE=True
 ASK_TO_REBOOT=0
 BLACKLIST=/etc/modprobe.d/raspi-blacklist.conf
 CONFIG=/boot/config.txt
-# Variables utilisées par ssmtp  (free.fr)
+# Variables utilisées par msmtp  (free.fr)
 EMAIL_ROOT=machin@free.fr
-EMAIL_SMTP=smtp.free.fr
-VERSION="1.3"
+SMTP_SERVER=smtp.free.fr
+SMTP_USER=you@free.fr
+SMTP_PASSWORD=motdepasse
+VERSION="1.4"
 
 calc_wt_size() {
   # NOTE: it's tempting to redirect stderr to /dev/null, so supress error
@@ -252,33 +254,60 @@ do_install_wiringpi() {
   return 0
 }
 
-do_install_mail_ssmtp(){
-  printf "Paramètres pour ssmtp\n" &&
-  EMAIL_ROOT=$(whiptail --inputbox "Adresse mail de root ou doit etre envoyé son courrier" 20 70 $EMAIL_ROOT 3>&1 1>&2 2>&3)
+do_install_mail_msmtp(){
+  printf "Paramètres pour msmtp\n" &&
+  EMAIL_ROOT=$(whiptail --inputbox "1/4: Adresse mail de root ou doit etre envoyé son courrier" 20 70 $EMAIL_ROOT 3>&1 1>&2 2>&3)
   if [ $? -ne 0 ]; then
     return 1;
   fi
-  printf "Paramètres pour ssmtp\n" &&
-  EMAIL_SSMTP=$(whiptail --inputbox "Adresse du serveur smtp utilisé" 20 70 $EMAIL_SMTP 3>&1 1>&2 2>&3)
+  printf "Paramètres pour msmtp\n" &&
+  MSMTP_SERVER=$(whiptail --inputbox "2/4: Adresse du serveur smtp utilisé" 20 70 $SMTP_SERVER 3>&1 1>&2 2>&3)
+  if [ $? -ne 0 ]; then
+    return 1;
+  fi
+  printf "Paramètres pour msmtp\n" &&
+  MSMTP_USER=$(whiptail --inputbox "3/4: Mail utiliateur serveur smtp de free" 20 70 $SMTP_USER 3>&1 1>&2 2>&3)
+  if [ $? -ne 0 ]; then
+    return 1;
+  fi
+  printf "Paramètres pour msmtp\n" &&
+  MSMTP_PASSWORD=$(whiptail --inputbox "4/4: Mot de passe utiliateur serveur smtp de free" 20 70 $SMTP_PASSWORD 3>&1 1>&2 2>&3)
   if [ $? -ne 0 ]; then
     return 1;
   fi
 
-  apt-get install -y ssmtp mailutils mpack &&
-  cat <<EOF >> /etc/ssmtp/ssmtp.conf
+  apt install -y msmtp msmtp-mta bsd-mailx &&
+  cat <<EOF >> /etc/msmtprc
 
 #rajouter par raspi_myconfig
-root=$EMAIL_ROOT
-mailhub=$EMAIL_SSMTP
-FromLineOverride=NO
-EOF
-  cat <<EOF >> /etc/ssmtp/revaliases
+# Exemple pour free.   L'utilisation du port 25 est une liaison non sécurisée nécessitant d'installer aussi bsd-mailx free1 non testé
+account        free1
+tls            off
+auth           off
+port           25
+host           $MSMTP_SERVER
+from           root@domaine.com
+user           $MSMTP_USER
+password       $MSMTP_PASSWORD
 
-#rajouter par raspi_myconfig
-root:$EMAIL_ROOT:$EMAIL_SMTP:25
-EOF
-  cat <<EOF >> /etc/aliases
+account free2
+auth           on
+tls            on
+tls_starttls   on
+auto_from      off
+add_missing_from_header on
+port           587
+#port           465
+host           $MSMTP_SERVER
+from           root@domaine.com
+user           $MSMTP_USER
+password       $MSMTP_PASSWORD
 
+# Définir le compte par défaut free1 ou free2
+account default : free2
+EOF
+
+cat <<EOF >> /etc/aliases
 #rajouter par raspi_myconfig
 root:$EMAIL_ROOT
 EOF
@@ -644,7 +673,7 @@ do_menu_add_soft() {
     "B4 Install LAMP" "Install mariadb-server apache php phpmyadmin" \
     "B5 Install phpmyadmin" "Install phpmyadmin et /etc.init.d/phpmyadmin start | stop" \
     "B6 Install wiringpi" "apt install wiringpi" \
-    "B7 Install mail ssmtp" "apt-get install ssmtp mailutils mpack" \
+    "B7 Install mail msmtp" "apt install msmtp msmtp-mta bsd-mailx" \
     "B8 Install webmin" "Webmin ->http://www.webmin.com/deb.html" \
     "B9 Install figlet" "figlet ASCII Art usage:figlet -f big texte" \
     "B0 Install de tout" "tout installer ...Pas encore disponible" \
@@ -660,7 +689,7 @@ do_menu_add_soft() {
       B4\ *) do_install_LAMP ;;
       B5\ *) do_install_phpmyadmin ;;
       B6\ *) do_install_wiringpi ;;
-      B7\ *) do_install_mail_ssmtp ;;
+      B7\ *) do_install_mail_msmtp ;;
       B8\ *) do_install_webmin ;;
       B9\ *) do_install_figlet ;;
       B0\ *) do_install_all ;;
