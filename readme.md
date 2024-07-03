@@ -28,8 +28,8 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
 	raspi-myconfig
 
 # Description des scripts:
-## [Wiki](./wiki)
+## [Wiki](https://github.com/steneor/raspi-myconfig/wiki)
 
 # Screenshot:
 
-![1](./wiki/images/capture.ecran.1.jpg)
+![1](https://github.com/steneor/raspi-myconfig/wiki/images/capture.ecran.1.jpg)
