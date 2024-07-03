@@ -305,6 +305,9 @@ password       $MSMTP_PASSWORD
 
 # Définir le compte par défaut free1 ou free2
 account default : free2
+
+# Map local users to mail addresses
+aliases /etc/aliases
 EOF
 
 cat <<EOF >> /etc/aliases
