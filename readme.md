@@ -31,5 +31,4 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
 ## [Wiki](https://github.com/steneor/raspi-myconfig/wiki)
 
 # Screenshot:
-
 ![1](https://github.com/steneor/raspi-myconfig/wiki/images/capture.ecran.1.jpg)
