@@ -1,6 +1,6 @@
-# Utilitaire de personnalisation de mon RPI STRETCH, BUSTER, BULLSEYE
+# Utilitaire de personnalisation de mon RPI STRETCH, BUSTER, BULLSEYE, BOOKWORM
 
-Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry PI raspbian strectch**
+Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry PI raspbian strectch**, buster, bulleyes, boockworm
 
 ## Pour l'installer:
 
@@ -28,24 +28,8 @@ Cet utilitaire regroupe différents scripts pour personnaliser mon **Raspberry P
 	raspi-myconfig
 
 # Description des scripts:
-## Menu sécurité
-### Add utilisateur
-### Del utilisateur pi
-### Permit root login
-### Install logwatch
-### Install fail2ban
-### Update this tool
-## Menu Logiciels
-### Update Ugrade
-### Install git
-### Install samba
-### Install LAMP
-### Install wiringpi
-### Install mail ssmtp
-### Install webmin
-## Menu Network
-### IP fixe eth0
-### IP fixe Wlan0
-### IPV6 désactivation
-### IPTABLES NFTABLES
-## Mount freebox
+## [Wiki](./wiki)
+
+# Screenshot:
+
+![1](./wiki/images/capture.ecran.1.jpg)
