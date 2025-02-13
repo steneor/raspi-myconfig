@@ -4,7 +4,8 @@
 INTERACTIVE=True
 ASK_TO_REBOOT=0
 BLACKLIST=/etc/modprobe.d/raspi-blacklist.conf
-CONFIG=/boot/config.txt
+#CONFIG=/boot/config.txt    # jusqu a buleyes
+CONFIG=/boot/firmware/config.txt     " pour bookworm
 # Variables utilisées par msmtp  (free.fr)
 EMAIL_ROOT=machin@free.fr
 SMTP_SERVER=smtp.free.fr
