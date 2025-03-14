@@ -94,6 +94,10 @@ Editer le fichier /etc/ssh/sshd_config puis vérifier que:
 	PubkeyAuthentication yes (authentification uniquement par clé)
 	PermitRootLogin without-password. (authentification uniquement par clé)
 
+	Changer le port d'écoute:
+	PORT 57117
+	puis relancer le service: systemctl restart sshd
+
 Le fichier /etc/skel/.bashrc va etre copier /root/.bashrc
 	cp /etc/skel/.bashrc /root
 
